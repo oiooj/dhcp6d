@@ -6,6 +6,7 @@ package main
 import (
 	"encoding/hex"
 	"flag"
+	"fmt"
 	"log"
 	"net"
 	"time"
@@ -17,12 +18,12 @@ import (
 
 func main() {
 	iface := flag.String("i", "eth0", "interface to serve DHCPv6")
-	ipFlag := flag.String("ip", "", "IPv6 address to serve over DHCPv6")
+	ipFlag := flag.String("subnet", "fc00:e4::/64", "IPv6 range addresses to serve over DHCPv6")
 	flag.Parse()
 
 	// Only accept a single IPv6 address
-	ip := net.ParseIP(*ipFlag).To16()
-	if ip == nil || ip.To4() != nil {
+	ip, _, err := net.ParseCIDR(*ipFlag)
+	if err != nil || ip == nil || ip.To4() != nil {
 		log.Fatal("IP is not an IPv6 address")
 	}
 
@@ -169,6 +170,7 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 func newIAAddr(ia *dhcp6opts.IANA, ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) error {
 	// Send IPv6 address with 60 second preferred lifetime,
 	// 90 second valid lifetime, no extra options
+	fmt.Println(r.Options)
 	iaaddr, err := dhcp6opts.NewIAAddr(ip, 60*time.Second, 90*time.Second, nil)
 	if err != nil {
 		return err

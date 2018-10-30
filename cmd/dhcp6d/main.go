@@ -75,6 +75,7 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 		log.Printf("MessageType： %s", r.MessageType)
 		return nil
 	}
+	log.Printf("MessageType： %s", r.MessageType)
 
 	// Make sure client sent a client ID.
 	duid, err := r.Options.GetOne(dhcp6.OptionClientID)

@@ -94,11 +94,13 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 	}
 	prefix, _, err := eui64.ParseIP(ip)
 	if err != nil {
+		log.Printf(err.Error())
 		return err
 	}
 
 	ip, err = eui64.ParseMAC(prefix, mac)
 	if err != nil {
+		log.Printf(err.Error())
 		return err
 	}
 
@@ -115,9 +117,9 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 
 	// Print out options the client has requested
 	if opts, err := dhcp6opts.GetOptionRequest(r.Options); err == nil {
-		log.Println("\t- requested:")
+		log.Println("- requested:")
 		for _, o := range opts {
-			log.Printf("\t\t - %s", o)
+			log.Printf("\t - %s", o)
 		}
 	}
 
@@ -138,11 +140,10 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 	}
 	ia := ianas[0]
 
-	log.Printf("\tIANA: %s (%s, %s), opts: %v",
+	log.Printf("IANA: %s (%s, %s)",
 		hex.EncodeToString(ia.IAID[:]),
 		ia.T1,
 		ia.T2,
-		ia.Options,
 	)
 
 	// Instruct client to prefer this server unconditionally
@@ -176,12 +177,14 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 	}
 	iaa := iaaddrs[0]
 
-	log.Printf("\t\tIAAddr: %s (%s, %s), opts: %v",
+	log.Printf("IAAddr: %s (%s, %s)",
 		iaa.IP,
 		iaa.PreferredLifetime,
 		iaa.ValidLifetime,
-		iaa.Options,
 	)
+
+	// update new IPv6 address
+	iaa.IP = ip
 
 	// Add IAAddr inside IANA, add IANA to options
 	_ = ia.Options.Add(dhcp6.OptionIAAddr, iaa)

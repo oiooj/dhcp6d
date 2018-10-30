@@ -79,7 +79,7 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 
 	// Log information about the incoming request.
 	log.Printf("[%s] id: %s, type: %d, len: %d, tx: %s",
-		hex.EncodeToString(duid),
+		hex.EncodeToString(duid[:3]),
 		r.RemoteAddr,
 		r.MessageType,
 		r.Length,

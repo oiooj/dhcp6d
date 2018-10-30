@@ -38,6 +38,32 @@ func (o Options) AddRaw(key OptionCode, value []byte) {
 	o[key] = append(o[key], value)
 }
 
+// Set sets a new OptionCode key and BinaryMarshaler struct's bytes to the
+// Options map.
+func (o Options) Set(key OptionCode, value encoding.BinaryMarshaler) error {
+	// Special case: since OptionRapidCommit actually has zero length, it is
+	// possible for an option key to appear with no value.
+	if value == nil {
+		o.SetRaw(key, nil)
+		return nil
+	}
+
+	b, err := value.MarshalBinary()
+	if err != nil {
+		return err
+	}
+
+	o.SetRaw(key, b)
+	return nil
+}
+
+// SetRaw sets a new OptionCode key and raw value byte slice to the
+// Options map.
+func (o Options) SetRaw(key OptionCode, value []byte) {
+	o[key] = make([][]byte, 1)
+	o[key] = append(o[key], value)
+}
+
 // Get attempts to retrieve all values specified by an OptionCode key.
 //
 // If a value is found, get returns a non-nil [][]byte and nil. If it is not

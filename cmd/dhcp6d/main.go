@@ -184,8 +184,14 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 		iaa.ValidLifetime,
 	)
 
+	// update old IPv6
+	iaaddr, err := dhcp6opts.NewIAAddr(ip, 60*time.Second, 90*time.Second, nil)
+	if err != nil {
+		return err
+	}
+
 	// Add IAAddr inside IANA, add IANA to options
-	_ = ia.Options.Add(dhcp6.OptionIAAddr, iaa)
+	_ = ia.Options.Add(dhcp6.OptionIAAddr, iaaddr)
 	_ = w.Options().Add(dhcp6.OptionIANA, ia)
 
 	// Send reply to client

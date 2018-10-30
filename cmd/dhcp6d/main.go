@@ -67,6 +67,7 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 		dhcp6.MessageTypeRequest: solicitHandler,
 		dhcp6.MessageTypeConfirm: solicitHandler,
 		dhcp6.MessageTypeRelease: releaseHandler,
+		dhcp6.MessageTypeRenew:   renewHandler,
 	}
 	h, ok := valid[r.MessageType]
 	if !ok {
@@ -130,6 +131,26 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 func releaseHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) error {
 	_, err := w.Send(dhcp6.MessageTypeReply)
 	return err
+}
+
+func renewHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) error {
+	// Client must send a IANA to retrieve an IPv6 address
+	ianas, err := dhcp6opts.GetIANA(r.Options)
+	if err == dhcp6.ErrOptionNotPresent {
+		log.Println("no IANAs provided")
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	// Only accept one IANA
+	if len(ianas) > 1 {
+		log.Println("can only handle one IANA")
+		return nil
+	}
+	ia := ianas[0]
+	return newIAAddr(ia, ip, w, r)
 }
 
 func solicitHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) error {
@@ -202,7 +223,7 @@ func solicitHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Requ
 	}
 
 	// Add IAAddr inside IANA, add IANA to options
-	_ = ia.Options.Set(dhcp6.OptionIAAddr, iaaddr)
+	_ = ia.Options.Add(dhcp6.OptionIAAddr, iaaddr)
 	_ = w.Options().Add(dhcp6.OptionIANA, ia)
 
 	// Send reply to client

@@ -64,11 +64,11 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 	// does not handle Information Request or other message types
 	valid := map[dhcp6.MessageType]handler{
 		dhcp6.MessageTypeSolicit: solicitHandler,
-		dhcp6.MessageTypeRequest: renewHandler,
-		dhcp6.MessageTypeConfirm: renewHandler,
+		dhcp6.MessageTypeRequest: rHandler,
+		dhcp6.MessageTypeConfirm: rHandler,
 		dhcp6.MessageTypeRelease: releaseHandler,
-		dhcp6.MessageTypeRenew:   renewHandler,
-		dhcp6.MessageTypeRebind:  rebindHandler,
+		dhcp6.MessageTypeRenew:   rHandler,
+		dhcp6.MessageTypeRebind:  rHandler,
 	}
 	h, ok := valid[r.MessageType]
 	if !ok {
@@ -135,37 +135,7 @@ func releaseHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Requ
 	return err
 }
 
-func renewHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) error {
-	// Client must send a IANA to retrieve an IPv6 address
-	ianas, err := dhcp6opts.GetIANA(r.Options)
-	if err == dhcp6.ErrOptionNotPresent {
-		log.Println("no IANAs provided")
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-
-	// Only accept one IANA
-	if len(ianas) > 1 {
-		log.Println("can only handle one IANA")
-		return nil
-	}
-	ia := ianas[0]
-	// update old IPv6
-	iaaddr, err := dhcp6opts.NewIAAddr(ip, 60*time.Second, 90*time.Second, nil)
-	if err != nil {
-		return err
-	}
-	_ = ia.Options.Add(dhcp6.OptionIAAddr, iaaddr)
-	_ = w.Options().Add(dhcp6.OptionIANA, ia)
-
-	// Send reply to client
-	_, err = w.Send(dhcp6.MessageTypeReply)
-	return err
-}
-
-func rebindHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) error {
+func rHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) error {
 	// Client must send a IANA to retrieve an IPv6 address
 	ianas, err := dhcp6opts.GetIANA(r.Options)
 	if err == dhcp6.ErrOptionNotPresent {
@@ -229,7 +199,7 @@ func solicitHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Requ
 func newIAAddr(ia *dhcp6opts.IANA, ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) error {
 	// Send IPv6 address with 60 second preferred lifetime,
 	// 90 second valid lifetime, no extra options
-	iaaddr, err := dhcp6opts.NewIAAddr(ip, 60*time.Second, 90*time.Second, nil)
+	iaaddr, err := dhcp6opts.NewIAAddr(ip, 60*time, 90*time.Second, nil)
 	if err != nil {
 		return err
 	}

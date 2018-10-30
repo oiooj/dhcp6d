@@ -199,7 +199,7 @@ func solicitHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Requ
 func newIAAddr(ia *dhcp6opts.IANA, ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) error {
 	// Send IPv6 address with 60 second preferred lifetime,
 	// 90 second valid lifetime, no extra options
-	iaaddr, err := dhcp6opts.NewIAAddr(ip, 60*time, 90*time.Second, nil)
+	iaaddr, err := dhcp6opts.NewIAAddr(ip, 60*time.Second, 90*time.Second, nil)
 	if err != nil {
 		return err
 	}

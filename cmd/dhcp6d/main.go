@@ -79,8 +79,8 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 		return nil
 	}
 
-	var duidllt *dhcp6opts.DUIDLLT
-	var duidll *dhcp6opts.DUIDLL
+	duidllt := new(dhcp6opts.DUIDLLT)
+	duidll := new(dhcp6opts.DUIDLL)
 	var mac net.HardwareAddr
 	if err := duidllt.UnmarshalBinary(duid); err != nil {
 		if err := duidll.UnmarshalBinary(duid); err != nil {

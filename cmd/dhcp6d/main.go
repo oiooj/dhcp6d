@@ -19,7 +19,7 @@ import (
 
 func main() {
 	iface := flag.String("i", "eth0", "interface to serve DHCPv6")
-	ipFlag := flag.String("subnet", "fc00:e4::/64", "IPv6 range addresses to serve over DHCPv6")
+	ipFlag := flag.String("subnet", "dead:beef:2018::/64", "IPv6 range addresses to serve over DHCPv6")
 	flag.Parse()
 
 	// Only accept a single IPv6 address
@@ -69,6 +69,7 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 		dhcp6.MessageTypeConfirm: {},
 	}
 	if _, ok := valid[r.MessageType]; !ok {
+		log.Printf("MessageType： %s", r.MessageType)
 		return nil
 	}
 

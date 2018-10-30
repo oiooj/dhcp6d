@@ -202,7 +202,7 @@ func solicitHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Requ
 
 	// Add IAAddr inside IANA, add IANA to options
 	_ = ia.Options.Set(dhcp6.OptionIAAddr, iaaddr)
-	_ = w.Options().Set(dhcp6.OptionIANA, ia)
+	_ = w.Options().Add(dhcp6.OptionIANA, ia)
 
 	// Send reply to client
 	_, err = w.Send(dhcp6.MessageTypeAdvertise)

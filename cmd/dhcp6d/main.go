@@ -174,7 +174,9 @@ func solicitHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Requ
 		return nil
 
 	case nil:
-		// Fall through below.
+		if r.MessageType == dhcp6.MessageTypeSolicit {
+			return newIAAddr(ia, ip, w, r)
+		}
 
 	default:
 		return err
@@ -201,7 +203,7 @@ func solicitHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Requ
 	}
 
 	// Add IAAddr inside IANA, add IANA to options
-	_ = ia.Options.Set(dhcp6.OptionIAAddr, iaaddr)
+	_ = ia.Options.Add(dhcp6.OptionIAAddr, iaaddr)
 	_ = w.Options().Add(dhcp6.OptionIANA, ia)
 
 	// Send reply to client

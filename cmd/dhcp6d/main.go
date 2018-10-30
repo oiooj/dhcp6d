@@ -206,7 +206,7 @@ func solicitHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Requ
 	_ = w.Options().Add(dhcp6.OptionIANA, ia)
 
 	// Send reply to client
-	_, err = w.Send(dhcp6.MessageTypeConfirm)
+	_, err = w.Send(dhcp6.MessageTypeReply)
 	return err
 }
 

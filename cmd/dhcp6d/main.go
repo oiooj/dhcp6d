@@ -67,6 +67,7 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 		dhcp6.MessageTypeSolicit: solicitHandler,
 		dhcp6.MessageTypeRequest: solicitHandler,
 		dhcp6.MessageTypeConfirm: solicitHandler,
+		dhcp6.MessageTypeRelease: releaseHandler,
 	}
 	h, ok := valid[r.MessageType]
 	if !ok {
@@ -125,6 +126,11 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 		}
 	}
 	return h(ip, w, r)
+}
+
+func releaseHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) error {
+	_, err := w.Send(dhcp6.MessageTypeReply)
+	return err
 }
 
 func solicitHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) error {

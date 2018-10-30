@@ -163,7 +163,7 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 		return nil
 
 	case nil:
-		// Fall through below.
+		return newIAAddr(ia, ip, w, r)
 
 	default:
 		return err

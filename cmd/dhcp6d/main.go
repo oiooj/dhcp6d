@@ -163,7 +163,7 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 		return nil
 
 	case nil:
-		return newIAAddr(ia, ip, w, r)
+		// Fall through below.
 
 	default:
 		return err
@@ -182,9 +182,6 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 		iaa.PreferredLifetime,
 		iaa.ValidLifetime,
 	)
-
-	// update new IPv6 address
-	iaa.IP = ip
 
 	// Add IAAddr inside IANA, add IANA to options
 	_ = ia.Options.Add(dhcp6.OptionIAAddr, iaa)

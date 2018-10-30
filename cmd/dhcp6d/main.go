@@ -68,6 +68,7 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 		dhcp6.MessageTypeConfirm: solicitHandler,
 		dhcp6.MessageTypeRelease: releaseHandler,
 		dhcp6.MessageTypeRenew:   renewHandler,
+		dhcp6.MessageTypeRebind:  rebindHandler,
 	}
 	h, ok := valid[r.MessageType]
 	if !ok {
@@ -134,23 +135,13 @@ func releaseHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Requ
 }
 
 func renewHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) error {
-	// Client must send a IANA to retrieve an IPv6 address
-	ianas, err := dhcp6opts.GetIANA(r.Options)
-	if err == dhcp6.ErrOptionNotPresent {
-		log.Println("no IANAs provided")
-		return nil
-	}
-	if err != nil {
-		return err
-	}
+	_, err := w.Send(dhcp6.MessageTypeReply)
+	return err
+}
 
-	// Only accept one IANA
-	if len(ianas) > 1 {
-		log.Println("can only handle one IANA")
-		return nil
-	}
-	ia := ianas[0]
-	return newIAAddr(ia, ip, w, r)
+func rebindHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) error {
+	_, err := w.Send(dhcp6.MessageTypeReply)
+	return err
 }
 
 func solicitHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) error {

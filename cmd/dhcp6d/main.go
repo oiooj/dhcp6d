@@ -64,8 +64,8 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 	// does not handle Information Request or other message types
 	valid := map[dhcp6.MessageType]handler{
 		dhcp6.MessageTypeSolicit: solicitHandler,
-		dhcp6.MessageTypeRequest: solicitHandler,
-		dhcp6.MessageTypeConfirm: solicitHandler,
+		dhcp6.MessageTypeRequest: renewHandler,
+		dhcp6.MessageTypeConfirm: renewHandler,
 		dhcp6.MessageTypeRelease: releaseHandler,
 		dhcp6.MessageTypeRenew:   renewHandler,
 		dhcp6.MessageTypeRebind:  rebindHandler,
@@ -221,56 +221,7 @@ func solicitHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Requ
 
 	// Instruct client to prefer this server unconditionally
 	_ = w.Options().Add(dhcp6.OptionPreference, dhcp6opts.Preference(255))
-
-	// IANA may already have an IAAddr if an address was already assigned.
-	// If not, assign a new one.
-	iaaddrs, err := dhcp6opts.GetIAAddr(ia.Options)
-	switch err {
-	case dhcp6.ErrOptionNotPresent:
-		// Client did not indicate a previous address, and is soliciting.
-		// Advertise a new IPv6 address.
-		if r.MessageType == dhcp6.MessageTypeSolicit {
-			return newIAAddr(ia, ip, w, r)
-		}
-		// Client did not indicate an address and is not soliciting.  Ignore.
-		return nil
-
-	case nil:
-		if r.MessageType == dhcp6.MessageTypeSolicit {
-			return newIAAddr(ia, ip, w, r)
-		}
-
-	default:
-		return err
-	}
-
-	// Confirm or renew an existing IPv6 address
-
-	// Must have an IAAddr, but we ignore if more than one is present
-	if len(iaaddrs) == 0 {
-		return nil
-	}
-	iaa := iaaddrs[0]
-
-	log.Printf("IAAddr: %s (%s, %s)",
-		iaa.IP,
-		iaa.PreferredLifetime,
-		iaa.ValidLifetime,
-	)
-
-	// update old IPv6
-	iaaddr, err := dhcp6opts.NewIAAddr(ip, 60*time.Second, 90*time.Second, nil)
-	if err != nil {
-		return err
-	}
-
-	// Add IAAddr inside IANA, add IANA to options
-	_ = ia.Options.Add(dhcp6.OptionIAAddr, iaaddr)
-	_ = w.Options().Add(dhcp6.OptionIANA, ia)
-
-	// Send reply to client
-	_, err = w.Send(dhcp6.MessageTypeReply)
-	return err
+	return newIAAddr(ia, ip, w, r)
 }
 
 // newIAAddr creates a IAAddr for a IANA using the specified IPv6 address,

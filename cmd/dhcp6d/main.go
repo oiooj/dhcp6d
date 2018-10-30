@@ -6,7 +6,6 @@ package main
 import (
 	"encoding/hex"
 	"flag"
-	"fmt"
 	"log"
 	"net"
 	"time"
@@ -203,11 +202,11 @@ func solicitHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Requ
 	}
 
 	// Add IAAddr inside IANA, add IANA to options
-	_ = ia.Options.Add(dhcp6.OptionIAAddr, iaaddr)
+	_ = ia.Options.Set(dhcp6.OptionIAAddr, iaaddr)
 	_ = w.Options().Add(dhcp6.OptionIANA, ia)
 
 	// Send reply to client
-	_, err = w.Send(dhcp6.MessageTypeAdvertise)
+	_, err = w.Send(dhcp6.MessageTypeConfirm)
 	return err
 }
 
@@ -216,7 +215,6 @@ func solicitHandler(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Requ
 func newIAAddr(ia *dhcp6opts.IANA, ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) error {
 	// Send IPv6 address with 60 second preferred lifetime,
 	// 90 second valid lifetime, no extra options
-	fmt.Println(r.Options)
 	iaaddr, err := dhcp6opts.NewIAAddr(ip, 60*time.Second, 90*time.Second, nil)
 	if err != nil {
 		return err

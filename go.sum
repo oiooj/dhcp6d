@@ -1,2 +1,4 @@
+github.com/mdlayher/eui64 v0.0.0-20150629174441-eee6532bb9ad h1:eMrH3nrWrAKYYoEgQXeDqeEEIlnV+64MpJJX5TB6exU=
+github.com/mdlayher/eui64 v0.0.0-20150629174441-eee6532bb9ad/go.mod h1:4CwrTieoY5T1aRpvsFccuGsB6vdpoghOM/UVOE31cog=
 golang.org/x/net v0.0.0-20181029044818-c44066c5c816 h1:mVFkLpejdFLXVUv9E42f3XJVfMdqd0IVLVIVLjZWn5o=
 golang.org/x/net v0.0.0-20181029044818-c44066c5c816/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=

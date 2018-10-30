@@ -11,6 +11,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/mdlayher/eui64"
 	"github.com/oiooj/dhcp6d"
 	"github.com/oiooj/dhcp6d/dhcp6opts"
 	"github.com/oiooj/dhcp6d/dhcp6server"
@@ -74,12 +75,38 @@ func handle(ip net.IP, w dhcp6server.ResponseSender, r *dhcp6server.Request) err
 	// Make sure client sent a client ID.
 	duid, err := r.Options.GetOne(dhcp6.OptionClientID)
 	if err != nil {
+		log.Printf("client ID not found")
 		return nil
 	}
 
+	var duidllt *dhcp6opts.DUIDLLT
+	var duidll *dhcp6opts.DUIDLL
+	var mac net.HardwareAddr
+	if err := duidllt.UnmarshalBinary(duid); err != nil {
+		if err := duidll.UnmarshalBinary(duid); err != nil {
+			log.Printf("unknown duid type")
+			return nil
+		} else {
+			mac = duidll.HardwareAddr
+		}
+	} else {
+		mac = duidllt.HardwareAddr
+	}
+	prefix, _, err := eui64.ParseIP(ip)
+	if err != nil {
+		return err
+	}
+
+	ip, err = eui64.ParseMAC(prefix, mac)
+	if err != nil {
+		return err
+	}
+
 	// Log information about the incoming request.
-	log.Printf("[%s] id: %s, type: %d, len: %d, tx: %s",
-		hex.EncodeToString(duid[:3]),
+	log.Printf("[%s] ipv6: %s mac: %s remote: %s, type: %d, len: %d, tx: %s",
+		hex.EncodeToString(duid),
+		ip.To16(),
+		mac.String(),
 		r.RemoteAddr,
 		r.MessageType,
 		r.Length,
